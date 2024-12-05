@@ -31,3 +31,17 @@ export function getDefaultSchema(type: JSONSchema['type']): JSONSchema {
   }
   return { type: 'string' };
 }
+
+export function clone<T>(val: T): T {
+  return JSON.parse(JSON.stringify(val))
+}
+
+export function genPropertyName(properties: Record<string, any>): string {
+  for (let i = 1; true; i += 1) {
+    const p = `field${i}`
+    if (p in properties) {
+      continue
+    }
+    return p
+  }
+}
