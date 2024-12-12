@@ -1,34 +1,34 @@
 import {
   CaretDownOutlined,
   CaretRightOutlined,
+  DeleteOutlined,
   PlusOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import {
   App,
   Button,
+  Checkbox,
   Col,
   Dropdown,
   Input,
   Row,
   Select,
-  theme,
   Tooltip,
+  theme,
 } from 'antd';
-import {
-  getDefaultSchema,
-  SchemaTypeOptions,
-} from 'json-schema-editor-react/shared';
 import React, { useState, type FC } from 'react';
+import { useMutationContext } from '../context';
+import { SchemaTypeOptions, getDefaultSchema } from '../shared';
 import type { JSONSchema } from '../types';
+import ComposiableInput from './ComposiableInput';
 
 interface SchemaEditorItemProps {
   schema: JSONSchema;
   path?: string[];
   propertyName?: string;
   isArrayItems?: boolean;
-  addProperty: (path: string[]) => void;
-  renameProperty: (path: string[], name: string) => void;
-  changeSchema: (path: string[], val: JSONSchema) => void;
+  required?: boolean;
 }
 
 const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
@@ -36,10 +36,15 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
   path = [],
   propertyName = '',
   isArrayItems = false,
-  addProperty,
-  renameProperty,
-  changeSchema,
+  required,
 }) => {
+  const {
+    addProperty,
+    removeProperty,
+    renameProperty,
+    changeSchema,
+    updateRequiredProperty,
+  } = useMutationContext();
   const isRoot = path.length === 0;
   const curPath = propertyName ? [...path, propertyName] : path;
   const schemaItems: any = schema.items;
@@ -82,11 +87,22 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
                 message.error('属性名称不能为空');
                 return;
               }
-              if (propertyNameDraft.length !== 0) {
-                renameProperty(curPath, propertyNameDraft);
-              }
+              renameProperty(curPath, propertyNameDraft);
             }}
             onChange={(name) => setPropertyNameDraft(name.target.value)}
+          />
+        </Col>
+        <Col flex={'16px'}>
+          <Checkbox
+            checked={required}
+            disabled={isArrayItems || isRoot}
+            onChange={(e) => {
+              updateRequiredProperty(
+                curPath,
+                propertyNameDraft,
+                e.target.checked,
+              );
+            }}
           />
         </Col>
         <Col flex="95px">
@@ -99,50 +115,99 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
             }}
           />
         </Col>
-        <Col flex={'72px'} style={{ marginLeft: 5 }}>
-          {!((isArrayItems || isRoot) && schema.type !== 'object') ? (
-            <Dropdown
-              disabled={!addChildItems}
-              placement="bottom"
-              menu={{
-                items: [
-                  {
-                    key: 'addNode',
-                    label: '同级节点',
-                    onClick: () => {
-                      addProperty(path.slice(0, -1));
+        <Col flex="auto">
+          <ComposiableInput
+            value={schema.title}
+            placeholder={'标题'}
+            onChange={(e) => {
+              changeSchema([...curPath, 'title'], e.target.value);
+            }}
+          />
+        </Col>
+        <Col flex={'auto'}>
+          <ComposiableInput
+            placeholder={'描述'}
+            value={schema.description}
+            onChange={(e) =>
+              changeSchema([...curPath, 'description'], e.target.value)
+            }
+          />
+        </Col>
+        <Col flex={'72px'}>
+          <Row style={{ width: '72px' }}>
+            <Tooltip title={'高级设置'}>
+              <Button
+                type={'text'}
+                size={'small'}
+                icon={<SettingOutlined />}
+                style={{ color: 'green' }}
+                onClick={() => {
+                  // setFormSchema(schema);
+                  // setAdvancedModal(!advancedModal);
+                }}
+              />
+            </Tooltip>
+            {!((isArrayItems || isRoot) && schema.type !== 'object') ? (
+              <Dropdown
+                disabled={!addChildItems}
+                placement="bottom"
+                menu={{
+                  items: [
+                    {
+                      key: 'addNode',
+                      label: '同级节点',
+                      onClick: () => {
+                        addProperty(path.slice(0, -1));
+                      },
                     },
-                  },
-                  {
-                    key: 'addChildNode',
-                    label: '子级节点',
-                    onClick: () => {
-                      addProperty(curPath);
+                    {
+                      key: 'addChildNode',
+                      label: '子级节点',
+                      onClick: () => {
+                        addProperty(curPath);
+                      },
                     },
-                  },
-                ],
-              }}
-            >
-              <Tooltip title={!addChildItems && '添加节点'}>
-                <Button
-                  type={'text'}
-                  size={'small'}
-                  icon={<PlusOutlined />}
-                  style={{ color: token.colorPrimary }}
-                  onClick={() => {
-                    if (addChildItems) {
-                      return;
-                    }
-                    addProperty(
-                      isArrayItems || isRoot ? curPath : path.slice(0, -1),
-                    );
-                  }}
-                />
-              </Tooltip>
-            </Dropdown>
-          ) : (
-            <div style={{ width: '24px' }} />
-          )}
+                  ],
+                }}
+              >
+                <Tooltip title={!addChildItems && '添加节点'}>
+                  <Button
+                    type={'text'}
+                    size={'small'}
+                    icon={<PlusOutlined />}
+                    style={{ color: token.colorPrimary }}
+                    onClick={() => {
+                      if (addChildItems) {
+                        return;
+                      }
+                      addProperty(
+                        isArrayItems || isRoot ? curPath : path.slice(0, -1),
+                      );
+                    }}
+                  />
+                </Tooltip>
+              </Dropdown>
+            ) : (
+              <div style={{ width: '24px' }} />
+            )}
+            <Col flex={'24px'}>
+              {!isRoot && !isArrayItems ? (
+                <Tooltip title={'删除节点'}>
+                  <Button
+                    danger
+                    type={'text'}
+                    size={'small'}
+                    icon={<DeleteOutlined />}
+                    onClick={() => {
+                      removeProperty(curPath);
+                    }}
+                  />
+                </Tooltip>
+              ) : (
+                <div style={{ width: '24px' }} />
+              )}
+            </Col>
+          </Row>
         </Col>
       </Row>
       {schema.properties &&
@@ -153,9 +218,7 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
             propertyName={name}
             schema={val as JSONSchema}
             key={name}
-            addProperty={addProperty}
-            renameProperty={renameProperty}
-            changeSchema={changeSchema}
+            required={schema.required?.includes(name)}
           />
         ))}
       {schema.type === 'array' && (
@@ -163,9 +226,6 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
           path={curPath}
           propertyName="items"
           schema={schema.items as JSONSchema}
-          addProperty={addProperty}
-          renameProperty={renameProperty}
-          changeSchema={changeSchema}
           isArrayItems
         />
       )}
