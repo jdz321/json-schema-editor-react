@@ -45,3 +45,15 @@ export function genPropertyName(properties: Record<string, any>): string {
     return p
   }
 }
+
+export const StringFormat = [
+  { value: 'date-time' },
+  { value: 'date' },
+  { value: 'time' },
+  { value: 'email' },
+  { value: 'hostname' },
+  { value: 'ipv4' },
+  { value: 'ipv6' },
+  { value: 'uri' },
+  { value: 'regex' },
+];

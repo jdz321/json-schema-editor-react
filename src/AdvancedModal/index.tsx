@@ -1,33 +1,51 @@
-import { Modal, Form, FormInstance } from 'antd';
-import React from 'react';
-import { SchemaMutationMethods, JSONSchema } from '../types'
-import { SchemaTypes } from 'json-schema-editor-react/shared';
+import React, { ComponentType, useState } from 'react';
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  Button,
+  Col,
+  Form,
+  FormInstance,
+  Input,
+  InputNumber,
+  Modal,
+  Row,
+  Select,
+  Switch,
+  theme,
+} from 'antd';
+import SimpleTextEditor from '../SimpleTextEditor';
+import { SchemaTypes, StringFormat } from '../shared';
+import { JSONSchema, SchemaMutationMethods, TextEditorProps } from '../types';
 
 interface AdvancedModalProps extends Partial<SchemaMutationMethods> {
-  show: boolean
-  setShow(val: boolean): void
-  schema: JSONSchema
-  formSchema: Partial<JSONSchema>
-  path: string[]
-  form: FormInstance<Partial<JSONSchema>>
+  show: boolean;
+  setShow(val: boolean): void;
+  formSchema: Partial<JSONSchema>;
+  setFormSchema(val: Partial<JSONSchema>): void
+  path: string[];
+  form: FormInstance<Partial<JSONSchema>>;
+  TextEditor?: ComponentType<TextEditorProps>;
 }
 
 export default function AdvancedModal({
   show,
   setShow,
   changeSchema,
-  schema,
   formSchema,
+  setFormSchema,
   path,
   form,
+  TextEditor = SimpleTextEditor,
 }: AdvancedModalProps) {
-  const isRoot = path.length === 0;
-  const isObject = formSchema.type === 'object'
-  const isArray = formSchema.type === 'array'
-  const isNumber = formSchema.type === 'number'
-  const isBoolean = formSchema.type === 'boolean'
-  const isInteger = formSchema.type === 'integer'
-  const isString = formSchema.type === 'string'
+  const isObject = formSchema.type === 'object';
+  const isArray = formSchema.type === 'array';
+  const isNumber = formSchema.type === 'number';
+  const isBoolean = formSchema.type === 'boolean';
+  const isInteger = formSchema.type === 'integer';
+  const isString = formSchema.type === 'string';
+
+  const { token } = theme.useToken();
+
   return (
     <Modal
       title="高级设置"
@@ -39,15 +57,10 @@ export default function AdvancedModal({
         if (!changeSchema) {
           return;
         }
-        if (isRoot || schema.type === 'object') {
-          changeSchema(path, { ...schema, ...formSchema });
-          setShow(false);
-          return;
-        }
         form
           .validateFields()
           .then((values) => {
-            changeSchema(path, { ...schema, ...values });
+            changeSchema(path, { ...formSchema, ...values });
             setShow(false);
           })
           .catch((errorInfo) => {
@@ -59,11 +72,7 @@ export default function AdvancedModal({
       <Form
         form={form}
         onValuesChange={(_, allValues) => {
-          // if (editorRef.current) {
-          //   editorRef.current.setValue(
-          //     JSON.stringify({ ...formSchema, ...allValues }, null, 2),
-          //   );
-          // }
+          setFormSchema({ ...formSchema, ...allValues })
         }}
       >
         {!isObject && SchemaTypes.indexOf(formSchema?.type as any) !== -1 && (
@@ -379,23 +388,33 @@ export default function AdvancedModal({
         >
           Json Schema
         </div>
-        <MonacoEditor
-          height={300}
-          language="json"
+        <TextEditor
+          style={{ height: 300 }}
           value={JSON.stringify(formSchema, null, 2)}
-          handleEditorDidMount={handleEditorDidMount}
           onChange={(value) => {
-            handleDebounce(() => {
-              if (value) {
-                try {
-                  const editorSchema = JSON.parse(value);
-                  setFormSchema(editorSchema);
-                } catch (e) {}
-              }
-            });
+            try {
+              const editorSchema = JSON.parse(value);
+              setFormSchema(editorSchema);
+              form.setFieldsValue(editorSchema)
+            } catch (e) {}
           }}
         />
       </Form>
     </Modal>
   );
+}
+
+export function useAdvancedModal() {
+  const [show, setShow] = useState(false)
+  const [path, setPath] = useState<string[]>([])
+  const [formSchema, setFormSchema] = useState<Partial<JSONSchema>>({})
+  const [form] = Form.useForm<Partial<JSONSchema>>()
+  const showAdvancedModal = (schema: Partial<JSONSchema>, path: string[]) => {
+    setFormSchema(schema)
+    form.resetFields()
+    form.setFieldsValue(schema)
+    setPath(path)
+    setShow(true)
+  }
+  return { show, setShow, path, setPath, formSchema, setFormSchema, form, showAdvancedModal }
 }

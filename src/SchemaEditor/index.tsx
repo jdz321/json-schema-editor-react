@@ -2,7 +2,8 @@ import { App } from 'antd';
 import pointer from 'json-pointer';
 import React, { useEffect, useState, type FC } from 'react';
 import SchemaEditorItem from '../SchemaEditorItem';
-import { MutationContext } from '../context';
+import AdvancedModal, { useAdvancedModal } from '../AdvancedModal';
+import { MutationContext, AdvancedModalContext } from '../context';
 import { clone, genPropertyName } from '../shared';
 import { JSONSchema } from '../types';
 
@@ -30,6 +31,8 @@ const SchemaEditor: FC<SchemaEditorProps> = ({ value, onChange }) => {
   const [schema, setSchema] = useState(
     value || ({ type: 'object' } as JSONSchema),
   );
+
+  const modalProps = useAdvancedModal()
 
   useEffect(() => {
     if (typeof value !== 'undefined') {
@@ -121,8 +124,11 @@ const SchemaEditor: FC<SchemaEditorProps> = ({ value, onChange }) => {
           removeProperty,
         }}
       >
-        <SchemaEditorItem schema={schema} />
+        <AdvancedModalContext.Provider value={modalProps.showAdvancedModal}>
+          <SchemaEditorItem schema={schema} />
+        </AdvancedModalContext.Provider>
       </MutationContext.Provider>
+      <AdvancedModal {...modalProps} changeSchema={changeSchema} />
     </App>
   );
 };

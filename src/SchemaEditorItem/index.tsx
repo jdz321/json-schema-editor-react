@@ -18,7 +18,7 @@ import {
   theme,
 } from 'antd';
 import React, { useState, type FC } from 'react';
-import { useMutationContext } from '../context';
+import { useMutationContext, useAdvancedModalContext } from '../context';
 import { SchemaTypeOptions, getDefaultSchema } from '../shared';
 import type { JSONSchema } from '../types';
 import ComposiableInput from './ComposiableInput';
@@ -45,6 +45,7 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
     changeSchema,
     updateRequiredProperty,
   } = useMutationContext();
+  const showAdvancedModal = useAdvancedModalContext()
   const isRoot = path.length === 0;
   const curPath = propertyName ? [...path, propertyName] : path;
   const schemaItems: any = schema.items;
@@ -142,8 +143,7 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
                 icon={<SettingOutlined />}
                 style={{ color: 'green' }}
                 onClick={() => {
-                  // setFormSchema(schema);
-                  // setAdvancedModal(!advancedModal);
+                  showAdvancedModal(schema, curPath)
                 }}
               />
             </Tooltip>

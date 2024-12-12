@@ -5,16 +5,14 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
+import { TextEditorProps } from '../types'
 
 type SimpleTextEditorBaseProps = Omit<
   HTMLAttributes<HTMLPreElement>,
   'onChange'
 >;
 
-interface SimpleTextEditorProps extends SimpleTextEditorBaseProps {
-  onChange(value: string): void;
-  value: string;
-}
+interface SimpleTextEditorProps extends SimpleTextEditorBaseProps, TextEditorProps {}
 
 const SimpleTextEditor: FC<SimpleTextEditorProps> = ({
   onChange,
