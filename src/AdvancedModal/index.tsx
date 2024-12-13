@@ -64,6 +64,8 @@ export default function AdvancedModal({
 
   const [showDefinition, setShowDefinition] = useState(false);
   const [definitionSchema, setDefinitionSchema] = useState<JSONSchema>();
+  const [definitionName, setDefinitionName] = useState<string>();
+  const [originDefinitionName, setOriginDefinitionName] = useState<string>();
 
   const createDefinition = () => {
     setDefinitionSchema({ type: 'object', properties: {} });
