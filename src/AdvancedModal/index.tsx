@@ -6,16 +6,18 @@ import {
   FormInstance,
   Input,
   InputNumber,
+  List,
   Modal,
   Row,
   Select,
+  Space,
   Switch,
   theme,
 } from 'antd';
-import React, { ComponentType, useState } from 'react';
+import React, { ComponentType, useRef, useState } from 'react';
 import SchemaEditor from '../SchemaEditor';
 import SimpleTextEditor from '../SimpleTextEditor';
-import { SchemaTypes, StringFormat } from '../shared';
+import { SchemaTypes, StringFormat, clone } from '../shared';
 import { JSONSchema, SchemaMutationMethods, TextEditorProps } from '../types';
 
 const SectionTitle: React.FC<{
@@ -42,6 +44,7 @@ interface AdvancedModalProps extends Partial<SchemaMutationMethods> {
   path: string[];
   form: FormInstance<Partial<JSONSchema>>;
   TextEditor?: ComponentType<TextEditorProps>;
+  disableDefinitions?: boolean;
 }
 
 export default function AdvancedModal({
@@ -53,6 +56,7 @@ export default function AdvancedModal({
   path,
   form,
   TextEditor = SimpleTextEditor,
+  disableDefinitions,
 }: AdvancedModalProps) {
   const isRoot = path.length === 0;
   const isObject = formSchema.type === 'object';
@@ -63,13 +67,48 @@ export default function AdvancedModal({
   const isString = formSchema.type === 'string';
 
   const [showDefinition, setShowDefinition] = useState(false);
-  const [definitionSchema, setDefinitionSchema] = useState<JSONSchema>();
-  const [definitionName, setDefinitionName] = useState<string>();
-  const [originDefinitionName, setOriginDefinitionName] = useState<string>();
+  const [definitionSchema, setDefinitionSchema] = useState<JSONSchema>({});
+  const [definitionName, setDefinitionName] = useState<string>('');
+  const originDefinitionName = useRef<string | null>(null);
+  const [definitionNameHelp, setDefinitionNameHelp] = useState('');
 
   const createDefinition = () => {
+    originDefinitionName.current = null;
+    setDefinitionName('');
     setDefinitionSchema({ type: 'object', properties: {} });
+    setDefinitionNameHelp('');
     setShowDefinition(true);
+  };
+
+  const editDefinition = (name: string, def: JSONSchema) => {
+    originDefinitionName.current = name;
+    setDefinitionName(name);
+    setDefinitionSchema(def);
+    setDefinitionNameHelp('');
+    setShowDefinition(true);
+  };
+
+  const removeDefinition = (name: string) => {
+    const definitions = clone(formSchema.definitions) as Record<
+      string,
+      JSONSchema
+    >;
+    delete definitions[name];
+    setFormSchema({ ...formSchema, definitions });
+  };
+
+  const validateDefinitionName = (val: string) => {
+    if (!val.trim()) {
+      return 'Name is required';
+    }
+    if (
+      val !== originDefinitionName.current &&
+      formSchema.definitions &&
+      val in formSchema.definitions
+    ) {
+      return 'This name already exists';
+    }
+    return '';
   };
 
   return (
@@ -102,12 +141,45 @@ export default function AdvancedModal({
             setFormSchema({ ...formSchema, ...allValues });
           }}
         >
-          {isRoot && (
+          {isRoot && !disableDefinitions && (
             <>
-              <SectionTitle title="Definitions" />
-              <button type="button" onClick={createDefinition}>
-                +
-              </button>
+              <SectionTitle>
+                <Space>
+                  <span>Definitions</span>
+                  <Button
+                    type="primary"
+                    onClick={createDefinition}
+                    icon={<PlusOutlined />}
+                  >
+                    Create
+                  </Button>
+                </Space>
+              </SectionTitle>
+              <List
+                dataSource={Object.entries(formSchema.definitions || {})}
+                renderItem={([name, schema]) => (
+                  <List.Item
+                    actions={[
+                      <Button
+                        key="btn-edit"
+                        onClick={() =>
+                          editDefinition(name, schema as JSONSchema)
+                        }
+                      >
+                        edit
+                      </Button>,
+                      <Button
+                        key="btn-remove"
+                        onClick={() => removeDefinition(name)}
+                      >
+                        remove
+                      </Button>,
+                    ]}
+                  >
+                    {name}
+                  </List.Item>
+                )}
+              />
             </>
           )}
           {!isObject && SchemaTypes.indexOf(formSchema?.type as any) !== -1 && (
@@ -432,10 +504,47 @@ export default function AdvancedModal({
           />
         </Form>
       </Modal>
-      <Modal title="Definition" open={showDefinition} width={815}>
+      <Modal
+        title="Definition"
+        open={showDefinition}
+        width={815}
+        onCancel={() => setShowDefinition(false)}
+        onOk={() => {
+          const msg = validateDefinitionName(definitionName);
+          if (msg) {
+            setDefinitionNameHelp(msg);
+            return;
+          }
+          const definitions = clone(
+            (formSchema.definitions || {}) as Record<string, JSONSchema>,
+          );
+          if (originDefinitionName.current) {
+            delete definitions[originDefinitionName.current];
+          }
+          definitions[definitionName] = definitionSchema;
+          setFormSchema({ ...formSchema, definitions });
+          setShowDefinition(false);
+        }}
+      >
+        <Form.Item<string>
+          label="name"
+          required
+          help={definitionNameHelp}
+          validateStatus={definitionNameHelp ? 'error' : 'success'}
+        >
+          <Input
+            placeholder="definition name"
+            value={definitionName}
+            onChange={(e) => {
+              setDefinitionName(e.target.value);
+              setDefinitionNameHelp(validateDefinitionName(e.target.value));
+            }}
+          />
+        </Form.Item>
         <SchemaEditor
           value={definitionSchema}
           onChange={(val) => setDefinitionSchema(val)}
+          disableDefinitions
         />
         <TextEditor
           style={{ height: 300 }}

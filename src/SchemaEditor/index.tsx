@@ -10,6 +10,7 @@ import { JSONSchema } from '../types';
 interface SchemaEditorProps {
   value?: JSONSchema;
   onChange?(val: JSONSchema): void;
+  disableDefinitions?: boolean;
 }
 
 function updateRequiredList(
@@ -27,7 +28,7 @@ function updateRequiredList(
   return res.length ? res : void 0;
 }
 
-const SchemaEditor: FC<SchemaEditorProps> = ({ value, onChange }) => {
+const SchemaEditor: FC<SchemaEditorProps> = ({ value, onChange, disableDefinitions }) => {
   const [schema, setSchema] = useState(
     value || ({ type: 'object' } as JSONSchema),
   );
@@ -128,7 +129,7 @@ const SchemaEditor: FC<SchemaEditorProps> = ({ value, onChange }) => {
           <SchemaEditorItem schema={schema} />
         </AdvancedModalContext.Provider>
       </MutationContext.Provider>
-      <AdvancedModal {...modalProps} changeSchema={changeSchema} />
+      <AdvancedModal {...modalProps} changeSchema={changeSchema} disableDefinitions={disableDefinitions} />
     </App>
   );
 };
