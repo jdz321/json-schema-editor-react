@@ -1,16 +1,18 @@
 import { App } from 'antd';
 import pointer from 'json-pointer';
-import React, { useEffect, useState, type FC } from 'react';
-import SchemaEditorItem from '../SchemaEditorItem';
+import React, { ComponentType, useEffect, useState, type FC } from 'react';
 import AdvancedModal, { useAdvancedModal } from '../AdvancedModal';
-import { MutationContext, AdvancedModalContext } from '../context';
+import SchemaEditorItem from '../SchemaEditorItem';
+import { AdvancedModalContext, MutationContext } from '../context';
 import { clone, genPropertyName } from '../shared';
-import { JSONSchema } from '../types';
+import { JSONSchema, TextEditorProps } from '../types';
+import SimpleTextEditor from '../SimpleTextEditor';
 
 interface SchemaEditorProps {
   value?: JSONSchema;
   onChange?(val: JSONSchema): void;
   disableDefinitions?: boolean;
+  TextEditor?: ComponentType<TextEditorProps>;
 }
 
 function updateRequiredList(
@@ -28,12 +30,17 @@ function updateRequiredList(
   return res.length ? res : void 0;
 }
 
-const SchemaEditor: FC<SchemaEditorProps> = ({ value, onChange, disableDefinitions }) => {
+const SchemaEditor: FC<SchemaEditorProps> = ({
+  value,
+  onChange,
+  disableDefinitions,
+  TextEditor = SimpleTextEditor,
+}) => {
   const [schema, setSchema] = useState(
     value || ({ type: 'object' } as JSONSchema),
   );
 
-  const modalProps = useAdvancedModal()
+  const modalProps = useAdvancedModal();
 
   useEffect(() => {
     if (typeof value !== 'undefined') {
@@ -129,7 +136,12 @@ const SchemaEditor: FC<SchemaEditorProps> = ({ value, onChange, disableDefinitio
           <SchemaEditorItem schema={schema} />
         </AdvancedModalContext.Provider>
       </MutationContext.Provider>
-      <AdvancedModal {...modalProps} changeSchema={changeSchema} disableDefinitions={disableDefinitions} />
+      <AdvancedModal
+        {...modalProps}
+        changeSchema={changeSchema}
+        disableDefinitions={disableDefinitions}
+        TextEditor={TextEditor}
+      />
     </App>
   );
 };
