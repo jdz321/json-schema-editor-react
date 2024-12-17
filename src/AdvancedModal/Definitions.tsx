@@ -6,12 +6,14 @@ import { clone } from '../shared';
 import { JSONSchema, TextEditorProps } from '../types';
 import SectionTitle from './SectionTitle';
 
+type Awaitable<T> = T | Promise<T>
 type TDefinitions = Record<string, JSONSchema> | undefined;
 
 interface DefinitionsProps {
   value: TDefinitions;
   onChange: (val: TDefinitions) => void;
   TextEditor: ComponentType<TextEditorProps>;
+  definitionsProvider?: (keyword?: string) => Awaitable<{ name: string; schema: JSONSchema }[]>;
 }
 
 export default function Definitions({
@@ -71,17 +73,25 @@ export default function Definitions({
         </Space>
       </SectionTitle>
       <List
+        size="small"
+        bordered
         dataSource={Object.entries(value || {})}
         renderItem={([name, schema]) => (
           <List.Item
             actions={[
               <Button
                 key="btn-edit"
+                type="link"
                 onClick={() => editDefinition(name, schema as JSONSchema)}
               >
                 edit
               </Button>,
-              <Button key="btn-remove" onClick={() => removeDefinition(name)}>
+              <Button
+                key="btn-remove"
+                type="link"
+                danger
+                onClick={() => removeDefinition(name)}
+              >
                 remove
               </Button>,
             ]}

@@ -11,7 +11,7 @@ const SectionTitle: React.FC<{
     fontSize: 16,
     fontWeight: 399,
     paddingLeft: 8,
-    marginBottom: 13,
+    margin: '12px 0',
   };
 
   return <div style={style}>{children || title}</div>;

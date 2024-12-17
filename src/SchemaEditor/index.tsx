@@ -1,18 +1,19 @@
 import { App } from 'antd';
 import pointer from 'json-pointer';
-import React, { ComponentType, useEffect, useState, type FC } from 'react';
+import React, { ComponentType, LazyExoticComponent, useEffect, useState, type FC } from 'react';
 import AdvancedModal, { useAdvancedModal } from '../AdvancedModal';
 import SchemaEditorItem from '../SchemaEditorItem';
 import { AdvancedModalContext, MutationContext } from '../context';
 import { clone, genPropertyName } from '../shared';
 import { JSONSchema, TextEditorProps } from '../types';
 import SimpleTextEditor from '../SimpleTextEditor';
+import withSpin from './withSpin';
 
 interface SchemaEditorProps {
   value?: JSONSchema;
   onChange?(val: JSONSchema): void;
   disableDefinitions?: boolean;
-  TextEditor?: ComponentType<TextEditorProps>;
+  TextEditor?: ComponentType<TextEditorProps> | LazyExoticComponent<ComponentType<TextEditorProps>>;
 }
 
 function updateRequiredList(
@@ -140,7 +141,7 @@ const SchemaEditor: FC<SchemaEditorProps> = ({
         {...modalProps}
         changeSchema={changeSchema}
         disableDefinitions={disableDefinitions}
-        TextEditor={TextEditor}
+        TextEditor={withSpin(TextEditor, 'Loading TextEditor ...')}
       />
     </App>
   );
