@@ -1,32 +1,28 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { App, Button, Form, Input, List, Modal, Select, Space } from 'antd';
-import React, { ComponentType, useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import SchemaEditor from '../SchemaEditor';
 import { clone } from '../shared';
 import {
-  DefinitionsProvider,
   ExternalDefinition,
   JSONSchema,
-  TextEditorProps,
 } from '../types';
 import SectionTitle from './SectionTitle';
+import { useEditorContext } from '../context'
 
 type TDefinitions = Record<string, JSONSchema> | undefined;
 
 interface DefinitionsProps {
   value: TDefinitions;
   onChange: (val: TDefinitions) => void;
-  TextEditor: ComponentType<TextEditorProps>;
-  definitionsProvider?: DefinitionsProvider;
 }
 
 export default function Definitions({
   value,
   onChange,
-  TextEditor,
-  definitionsProvider,
 }: DefinitionsProps) {
   const { modal, message } = App.useApp()
+  const { definitionsProvider, TextEditor } = useEditorContext()
 
   const [showDefinition, setShowDefinition] = useState(false);
   const [definitionSchema, setDefinitionSchema] = useState<JSONSchema>({});

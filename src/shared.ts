@@ -33,27 +33,31 @@ export function getDefaultSchema(type: JSONSchema['type']): JSONSchema {
 }
 
 export function clone<T>(val: T): T {
-  return JSON.parse(JSON.stringify(val))
+  return JSON.parse(JSON.stringify(val));
 }
 
 export function genPropertyName(properties: Record<string, any>): string {
   for (let i = 1; true; i += 1) {
-    const p = `field${i}`
+    const p = `field${i}`;
     if (p in properties) {
-      continue
+      continue;
     }
-    return p
+    return p;
   }
 }
 
 export const StringFormat = [
-  { value: 'date-time' },
-  { value: 'date' },
-  { value: 'time' },
-  { value: 'email' },
-  { value: 'hostname' },
-  { value: 'ipv4' },
-  { value: 'ipv6' },
-  { value: 'uri' },
-  { value: 'regex' },
-];
+  'date-time',
+  'date',
+  'time',
+  'email',
+  'hostname',
+  'ipv4',
+  'ipv6',
+  'uri',
+  'regex',
+] as const;
+
+export const getStringFormatOptions = (customFormat?: string[]) => {
+  return [...StringFormat, ...(customFormat || [])].map((value) => ({ value }));
+};

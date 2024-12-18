@@ -1,8 +1,11 @@
 import { Col, Form, Input, Row, Select } from 'antd';
-import { StringFormat } from '../shared';
+import { getStringFormatOptions } from '../shared';
 import React from 'react';
+import { useEditorContext } from '../context'
 
 export default function FormatFields() {
+  const { customFormat } = useEditorContext()
+  const stringFormatOptions = getStringFormatOptions(customFormat)
   return (
     <>
       <Row justify={'start'} align={'middle'} style={{ marginBottom: 13 }}>
@@ -23,7 +26,7 @@ export default function FormatFields() {
           <Form.Item noStyle name={'format'}>
             <Select
               allowClear
-              options={StringFormat}
+              options={stringFormatOptions}
               placeholder={'请选择字符串格式'}
               style={{ width: '100%' }}
             />

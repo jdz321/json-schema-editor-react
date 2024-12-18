@@ -18,7 +18,7 @@ import {
   theme,
 } from 'antd';
 import React, { useState, type FC } from 'react';
-import { useMutationContext, useAdvancedModalContext } from '../context';
+import { useEditorContext } from '../context';
 import { SchemaTypeOptions, getDefaultSchema } from '../shared';
 import type { JSONSchema } from '../types';
 import ComposiableInput from './ComposiableInput';
@@ -44,8 +44,8 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
     renameProperty,
     changeSchema,
     updateRequiredProperty,
-  } = useMutationContext();
-  const showAdvancedModal = useAdvancedModalContext()
+    showAdvancedModal,
+  } = useEditorContext();
   const isRoot = path.length === 0;
   const curPath = propertyName ? [...path, propertyName] : path;
   const schemaItems: any = schema.items;
@@ -108,6 +108,7 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
         </Col>
         <Col flex="95px">
           <Select
+            placeholder="type"
             style={{ width: '95px' }}
             value={schema.type}
             options={SchemaTypeOptions}

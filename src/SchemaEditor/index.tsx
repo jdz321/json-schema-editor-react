@@ -1,20 +1,32 @@
 import { App } from 'antd';
 import pointer from 'json-pointer';
-import React, { ComponentType, LazyExoticComponent, useEffect, useState, type FC } from 'react';
+import React, {
+  ComponentType,
+  LazyExoticComponent,
+  useEffect,
+  useState,
+  type FC,
+} from 'react';
 import AdvancedModal, { useAdvancedModal } from '../AdvancedModal';
 import SchemaEditorItem from '../SchemaEditorItem';
-import { AdvancedModalContext, MutationContext } from '../context';
+import SimpleTextEditor from '../SimpleTextEditor';
+import {
+  EditorContext,
+  useEditorContext,
+} from '../context';
 import { clone, genPropertyName } from '../shared';
 import { DefinitionsProvider, JSONSchema, TextEditorProps } from '../types';
-import SimpleTextEditor from '../SimpleTextEditor';
 import withSpin from './withSpin';
 
 interface SchemaEditorProps {
   value?: JSONSchema;
   onChange?(val: JSONSchema): void;
   disableDefinitions?: boolean;
-  TextEditor?: ComponentType<TextEditorProps> | LazyExoticComponent<ComponentType<TextEditorProps>>;
+  TextEditor?:
+    | ComponentType<TextEditorProps>
+    | LazyExoticComponent<ComponentType<TextEditorProps>>;
   definitionsProvider?: DefinitionsProvider;
+  customFormat?: string[];
 }
 
 function updateRequiredList(
@@ -38,12 +50,14 @@ const SchemaEditor: FC<SchemaEditorProps> = ({
   disableDefinitions,
   TextEditor = SimpleTextEditor,
   definitionsProvider,
+  customFormat,
 }) => {
   const [schema, setSchema] = useState(
     value || ({ type: 'object' } as JSONSchema),
   );
 
   const modalProps = useAdvancedModal();
+  const parentEditorContext = useEditorContext()
 
   useEffect(() => {
     if (typeof value !== 'undefined') {
@@ -126,26 +140,27 @@ const SchemaEditor: FC<SchemaEditorProps> = ({
   };
   return (
     <App>
-      <MutationContext.Provider
+      <EditorContext.Provider
         value={{
           addProperty,
           renameProperty,
           changeSchema,
           updateRequiredProperty,
           removeProperty,
+          showAdvancedModal: modalProps.showAdvancedModal,
+          definitionsProvider,
+          TextEditor: parentEditorContext?.TextEditor || withSpin(TextEditor, 'Loading TextEditor ...'),
+          definitions: parentEditorContext?.definitions || schema.definitions as Record<string, JSONSchema>,
+          customFormat: parentEditorContext?.customFormat || customFormat,
         }}
       >
-        <AdvancedModalContext.Provider value={modalProps.showAdvancedModal}>
-          <SchemaEditorItem schema={schema} />
-        </AdvancedModalContext.Provider>
-      </MutationContext.Provider>
-      <AdvancedModal
-        {...modalProps}
-        changeSchema={changeSchema}
-        disableDefinitions={disableDefinitions}
-        TextEditor={withSpin(TextEditor, 'Loading TextEditor ...')}
-        definitionsProvider={definitionsProvider}
-      />
+        <SchemaEditorItem schema={schema} />
+        <AdvancedModal
+          {...modalProps}
+          changeSchema={changeSchema}
+          disableDefinitions={disableDefinitions}
+        />
+      </EditorContext.Provider>
     </App>
   );
 };

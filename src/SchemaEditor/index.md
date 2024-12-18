@@ -17,7 +17,7 @@ export default () => {
   }
   return (
     <>
-      <SchemaEditor value={value} onChange={setValue} />
+      <SchemaEditor value={value} onChange={setValue} customFormat={['image']} />
       <SimpleTextEditor
         value={JSON.stringify(value, null, 2)}
         onChange={setSchema}
