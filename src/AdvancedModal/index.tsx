@@ -1,7 +1,7 @@
 import { Form, FormInstance, Modal } from 'antd';
 import React, { ComponentType, useState } from 'react';
 import { SchemaTypes } from '../shared';
-import { JSONSchema, SchemaMutationMethods, TextEditorProps } from '../types';
+import { DefinitionsProvider, JSONSchema, SchemaMutationMethods, TextEditorProps } from '../types';
 import ArrayFields from './ArrayFields';
 import CommonFields from './CommonFields';
 import Definitions from './Definitions';
@@ -21,6 +21,7 @@ interface AdvancedModalProps extends Partial<SchemaMutationMethods> {
   form: FormInstance<Partial<JSONSchema>>;
   TextEditor: ComponentType<TextEditorProps>;
   disableDefinitions?: boolean;
+  definitionsProvider?: DefinitionsProvider;
 }
 
 export default function AdvancedModal({
@@ -33,6 +34,7 @@ export default function AdvancedModal({
   form,
   TextEditor,
   disableDefinitions,
+  definitionsProvider,
 }: AdvancedModalProps) {
   const flags: SchemaTypeFlags = {
     isRoot: path.length === 0,
@@ -81,6 +83,7 @@ export default function AdvancedModal({
               onChange={(definitions) =>
                 setFormSchema({ ...formSchema, definitions })
               }
+              definitionsProvider={definitionsProvider}
             />
           )}
           {!flags.isObject &&

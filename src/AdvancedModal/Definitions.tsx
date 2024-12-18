@@ -1,26 +1,33 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Form, Input, List, Modal, Space } from 'antd';
-import React, { ComponentType, useRef, useState } from 'react';
+import { App, Button, Form, Input, List, Modal, Select, Space } from 'antd';
+import React, { ComponentType, useCallback, useRef, useState } from 'react';
 import SchemaEditor from '../SchemaEditor';
 import { clone } from '../shared';
-import { JSONSchema, TextEditorProps } from '../types';
+import {
+  DefinitionsProvider,
+  ExternalDefinition,
+  JSONSchema,
+  TextEditorProps,
+} from '../types';
 import SectionTitle from './SectionTitle';
 
-type Awaitable<T> = T | Promise<T>
 type TDefinitions = Record<string, JSONSchema> | undefined;
 
 interface DefinitionsProps {
   value: TDefinitions;
   onChange: (val: TDefinitions) => void;
   TextEditor: ComponentType<TextEditorProps>;
-  definitionsProvider?: (keyword?: string) => Awaitable<{ name: string; schema: JSONSchema }[]>;
+  definitionsProvider?: DefinitionsProvider;
 }
 
 export default function Definitions({
   value,
   onChange,
   TextEditor,
+  definitionsProvider,
 }: DefinitionsProps) {
+  const { modal, message } = App.useApp()
+
   const [showDefinition, setShowDefinition] = useState(false);
   const [definitionSchema, setDefinitionSchema] = useState<JSONSchema>({});
   const [definitionName, setDefinitionName] = useState<string>('');
@@ -58,6 +65,34 @@ export default function Definitions({
     }
     return '';
   };
+
+  const [externalDefinitions, setExternalDefinitions] = useState<
+    ExternalDefinition[]
+  >([]);
+
+  const onSearchDefinition = useCallback(
+    (keyword?: string) => {
+      Promise.resolve(definitionsProvider!(keyword)).then(
+        setExternalDefinitions,
+      );
+    },
+    [definitionsProvider, setExternalDefinitions],
+  );
+
+  const onSelectExternalDefinition = async (name: string, { schema }: ExternalDefinition) => {
+    if (value && name in value) {
+      const confirmed = await modal.confirm({
+        title: 'This name already exists',
+        content: `The definition named "${name}" already exists, do you want to replace the original one`,
+      })
+      if (!confirmed) {
+        return
+      }
+    }
+    onChange({ ...(value || {}), [name]: schema })
+    message.success('import success')
+  }
+
   return (
     <>
       <SectionTitle>
@@ -70,6 +105,19 @@ export default function Definitions({
           >
             Create
           </Button>
+          {definitionsProvider && (
+            <Select
+              value={[]}
+              style={{ width: 240 }}
+              placeholder="import external definitions..."
+              showSearch
+              filterOption={false}
+              options={externalDefinitions}
+              onSearch={onSearchDefinition}
+              onFocus={onSearchDefinition.bind(null, '')}
+              onSelect={onSelectExternalDefinition}
+            />
+          )}
         </Space>
       </SectionTitle>
       <List

@@ -5,7 +5,7 @@ import AdvancedModal, { useAdvancedModal } from '../AdvancedModal';
 import SchemaEditorItem from '../SchemaEditorItem';
 import { AdvancedModalContext, MutationContext } from '../context';
 import { clone, genPropertyName } from '../shared';
-import { JSONSchema, TextEditorProps } from '../types';
+import { DefinitionsProvider, JSONSchema, TextEditorProps } from '../types';
 import SimpleTextEditor from '../SimpleTextEditor';
 import withSpin from './withSpin';
 
@@ -14,6 +14,7 @@ interface SchemaEditorProps {
   onChange?(val: JSONSchema): void;
   disableDefinitions?: boolean;
   TextEditor?: ComponentType<TextEditorProps> | LazyExoticComponent<ComponentType<TextEditorProps>>;
+  definitionsProvider?: DefinitionsProvider;
 }
 
 function updateRequiredList(
@@ -36,6 +37,7 @@ const SchemaEditor: FC<SchemaEditorProps> = ({
   onChange,
   disableDefinitions,
   TextEditor = SimpleTextEditor,
+  definitionsProvider,
 }) => {
   const [schema, setSchema] = useState(
     value || ({ type: 'object' } as JSONSchema),
@@ -142,6 +144,7 @@ const SchemaEditor: FC<SchemaEditorProps> = ({
         changeSchema={changeSchema}
         disableDefinitions={disableDefinitions}
         TextEditor={withSpin(TextEditor, 'Loading TextEditor ...')}
+        definitionsProvider={definitionsProvider}
       />
     </App>
   );
