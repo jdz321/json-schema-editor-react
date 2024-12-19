@@ -13,7 +13,7 @@ export const useAdvancedModalContext = () => useContext(AdvancedModalContext)
 interface EditorContextType extends SchemaMutationMethods {
   TextEditor: ComponentType<TextEditorProps>;
   showAdvancedModal: ShowAdvancedModal;
-  definitions?: Record<string, JSONSchema>;
+  definitions?: JSONSchema['definitions'];
   customFormat?: string[];
   definitionsProvider?: DefinitionsProvider;
 }

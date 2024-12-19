@@ -77,7 +77,7 @@ export default function AdvancedModal({
         >
           {flags.isRoot && !disableDefinitions && (
             <Definitions
-              value={formSchema.definitions as Record<string, JSONSchema>}
+              value={formSchema.definitions}
               onChange={(definitions) =>
                 setFormSchema({ ...formSchema, definitions })
               }

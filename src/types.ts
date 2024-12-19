@@ -1,9 +1,11 @@
 import type { JSONSchema7, JSONSchema7TypeName } from 'json-schema';
 import type { CSSProperties } from 'react';
 
-type Awaitable<T> = T | Promise<T>
+type Awaitable<T> = T | Promise<T>;
 
-export type JSONSchema = JSONSchema7;
+export type JSONSchema = Omit<JSONSchema7, 'definitions'> & {
+  definitions?: Record<string, JSONSchema>;
+};
 
 export type JSONSchemaTypeName = JSONSchema7TypeName;
 
@@ -22,11 +24,11 @@ export interface TextEditorProps {
 }
 
 export interface ExternalDefinition {
-  label?: string
-  value: string
-  schema: JSONSchema
+  label?: string;
+  value: string;
+  schema: JSONSchema;
 }
 
 export interface DefinitionsProvider {
-  (keyword?: string): Awaitable<ExternalDefinition[]>
+  (keyword?: string): Awaitable<ExternalDefinition[]>;
 }

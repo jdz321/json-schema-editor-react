@@ -150,7 +150,7 @@ const SchemaEditor: FC<SchemaEditorProps> = ({
           showAdvancedModal: modalProps.showAdvancedModal,
           definitionsProvider,
           TextEditor: parentEditorContext?.TextEditor || withSpin(TextEditor, 'Loading TextEditor ...'),
-          definitions: parentEditorContext?.definitions || schema.definitions as Record<string, JSONSchema>,
+          definitions: parentEditorContext?.definitions || schema.definitions,
           customFormat: parentEditorContext?.customFormat || customFormat,
         }}
       >

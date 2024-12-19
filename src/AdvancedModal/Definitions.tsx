@@ -2,27 +2,21 @@ import { PlusOutlined } from '@ant-design/icons';
 import { App, Button, Form, Input, List, Modal, Select, Space } from 'antd';
 import React, { useCallback, useRef, useState } from 'react';
 import SchemaEditor from '../SchemaEditor';
+import { useEditorContext } from '../context';
 import { clone } from '../shared';
-import {
-  ExternalDefinition,
-  JSONSchema,
-} from '../types';
+import { ExternalDefinition, JSONSchema } from '../types';
 import SectionTitle from './SectionTitle';
-import { useEditorContext } from '../context'
 
-type TDefinitions = Record<string, JSONSchema> | undefined;
+type TDefinitions = JSONSchema['definitions'];
 
 interface DefinitionsProps {
   value: TDefinitions;
   onChange: (val: TDefinitions) => void;
 }
 
-export default function Definitions({
-  value,
-  onChange,
-}: DefinitionsProps) {
-  const { modal, message } = App.useApp()
-  const { definitionsProvider, TextEditor } = useEditorContext()
+export default function Definitions({ value, onChange }: DefinitionsProps) {
+  const { modal, message } = App.useApp();
+  const { definitionsProvider, TextEditor } = useEditorContext();
 
   const [showDefinition, setShowDefinition] = useState(false);
   const [definitionSchema, setDefinitionSchema] = useState<JSONSchema>({});
@@ -47,7 +41,7 @@ export default function Definitions({
   };
 
   const removeDefinition = (name: string) => {
-    const definitions = clone(value) as Record<string, JSONSchema>;
+    const definitions = clone(value!);
     delete definitions[name];
     onChange(definitions);
   };
@@ -75,19 +69,28 @@ export default function Definitions({
     [definitionsProvider, setExternalDefinitions],
   );
 
-  const onSelectExternalDefinition = async (name: string, { schema }: ExternalDefinition) => {
+  const onSelectExternalDefinition = async (
+    name: string,
+    { schema }: ExternalDefinition,
+  ) => {
     if (value && name in value) {
       const confirmed = await modal.confirm({
         title: 'This name already exists',
         content: `The definition named "${name}" already exists, do you want to replace the original one`,
-      })
+      });
       if (!confirmed) {
-        return
+        return;
       }
     }
-    onChange({ ...(value || {}), [name]: schema })
-    message.success('import success')
-  }
+    onChange({
+      ...(value || {}),
+      // map definitions of importing schema to root
+      ...(schema.definitions || {}),
+      // remove definitions from importing schema
+      [name]: { ...schema, definitions: undefined },
+    });
+    message.success('import success');
+  };
 
   return (
     <>
@@ -126,7 +129,7 @@ export default function Definitions({
               <Button
                 key="btn-edit"
                 type="link"
-                onClick={() => editDefinition(name, schema as JSONSchema)}
+                onClick={() => editDefinition(name, schema)}
               >
                 edit
               </Button>,
@@ -155,9 +158,7 @@ export default function Definitions({
             setDefinitionNameHelp(msg);
             return;
           }
-          const definitions = clone(
-            (value || {}) as Record<string, JSONSchema>,
-          );
+          const definitions = clone(value || {});
           if (originDefinitionName.current) {
             delete definitions[originDefinitionName.current];
           }
