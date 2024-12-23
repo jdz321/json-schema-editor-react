@@ -1,5 +1,5 @@
 {
-  "name": "json-schema-editor-react",
+  "name": "json-schema-editor-visual-react",
   "version": "0.0.1",
   "description": "A react library developed with dumi",
   "module": "dist/index.js",
