@@ -1,4 +1,5 @@
-import { JSONSchema } from './types';
+import type { SelectProps } from 'antd'
+import type { JSONSchema } from './types';
 
 export const SchemaTypes = [
   'string',
@@ -12,6 +13,26 @@ export const SchemaTypes = [
 export const SchemaTypeOptions = SchemaTypes.map((value) => {
   return { value: value };
 });
+
+export const defTypePrefix = 'def:'
+
+export const getSchemaTypeOptions = (definitions: JSONSchema['definitions'] = {}) => {
+  const defOptions = Object.keys(definitions).map((name) => ({
+    label: name,
+    value: `${defTypePrefix}${name}`,
+  }))
+  const options: SelectProps['options'] = [{
+    label: 'basic types',
+    options: SchemaTypeOptions,
+  }]
+  if (defOptions.length) {
+    options.push({
+      label: 'definitions',
+      options: defOptions,
+    })
+  }
+  return options
+}
 
 export function getDefaultSchema(type: JSONSchema['type']): JSONSchema {
   switch (type) {
@@ -61,3 +82,13 @@ export const StringFormat = [
 export const getStringFormatOptions = (customFormat?: string[]) => {
   return [...StringFormat, ...(customFormat || [])].map((value) => ({ value }));
 };
+
+/**
+ * ref: #/definitions/xx
+ */
+export const getDefinitionNameFromRef = (ref: string = '') => {
+  const refPrefix = '#/definitions/'
+  if (ref.startsWith(refPrefix)) {
+    return ref.replace(refPrefix, '')
+  }
+}

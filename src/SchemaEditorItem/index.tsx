@@ -19,7 +19,7 @@ import {
 } from 'antd';
 import React, { useState, type FC } from 'react';
 import { useEditorContext } from '../context';
-import { SchemaTypeOptions, getDefaultSchema } from '../shared';
+import { getSchemaTypeOptions, getDefaultSchema, defTypePrefix, getDefinitionNameFromRef } from '../shared';
 import type { JSONSchema } from '../types';
 import ComposiableInput from './ComposiableInput';
 
@@ -40,6 +40,7 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
 }) => {
   const {
     addProperty,
+    definitions,
     removeProperty,
     renameProperty,
     changeSchema,
@@ -60,6 +61,19 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
   const { token } = theme.useToken();
   const [expand, setExpand] = useState(true);
   const [propertyNameDraft, setPropertyNameDraft] = useState(propertyName);
+  const onTypeChange = (type: string) => {
+    if (type.startsWith(defTypePrefix)) {
+      const def = type.replace(defTypePrefix, '')
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { type: _, ...restProps } = schema
+      changeSchema(curPath, {
+        ...restProps,
+        $ref: `#/definitions/${def}`,
+      });
+    } else {
+      changeSchema(curPath, getDefaultSchema(type as JSONSchema['type']));
+    }
+  }
   return (
     <div style={{ marginLeft: isRoot && !isArrayItems ? 0 : 17 }}>
       <Row align="middle" gutter={5} style={{ paddingBottom: 10 }}>
@@ -109,12 +123,11 @@ const SchemaEditorItem: FC<SchemaEditorItemProps> = ({
         <Col flex="95px">
           <Select
             placeholder="type"
+            popupMatchSelectWidth={false}
             style={{ width: '95px' }}
-            value={schema.type}
-            options={SchemaTypeOptions}
-            onChange={(type) => {
-              changeSchema(curPath, getDefaultSchema(type));
-            }}
+            value={getDefinitionNameFromRef(schema.$ref) || schema.type as string}
+            options={getSchemaTypeOptions(definitions)}
+            onChange={onTypeChange}
           />
         </Col>
         <Col flex="auto">
