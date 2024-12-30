@@ -1,8 +1,8 @@
 import { Form, FormInstance, Modal } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useEditorContext } from '../context';
 import { SchemaTypes } from '../shared';
 import { JSONSchema, SchemaMutationMethods } from '../types';
-import { useEditorContext } from '../context'
 import ArrayFields from './ArrayFields';
 import CommonFields from './CommonFields';
 import Definitions from './Definitions';
@@ -33,17 +33,25 @@ export default function AdvancedModal({
   form,
   disableDefinitions,
 }: AdvancedModalProps) {
-  const flags: SchemaTypeFlags = {
-    isRoot: path.length === 0,
-    isObject: formSchema.type === 'object',
-    isArray: formSchema.type === 'array',
-    isNumber: formSchema.type === 'number',
-    isBoolean: formSchema.type === 'boolean',
-    isInteger: formSchema.type === 'integer',
-    isString: formSchema.type === 'string',
-  };
+  const { TextEditor } = useEditorContext();
 
-  const { TextEditor } = useEditorContext()
+  const [schema, setSchema] = useState<Partial<JSONSchema>>(formSchema);
+  const flags = useMemo<SchemaTypeFlags>(
+    () => ({
+      isRoot: path.length === 0,
+      isObject: schema.type === 'object',
+      isArray: schema.type === 'array',
+      isNumber: schema.type === 'number',
+      isBoolean: schema.type === 'boolean',
+      isInteger: schema.type === 'integer',
+      isString: schema.type === 'string',
+    }),
+    [schema, path],
+  );
+
+  useEffect(() => {
+    setSchema(formSchema);
+  }, [formSchema]);
 
   return (
     <>
@@ -60,7 +68,7 @@ export default function AdvancedModal({
           form
             .validateFields()
             .then((values) => {
-              changeSchema(path, { ...formSchema, ...values });
+              changeSchema(path, { ...schema, ...values });
               setShow(false);
             })
             .catch((errorInfo) => {
@@ -72,19 +80,19 @@ export default function AdvancedModal({
         <Form
           form={form}
           onValuesChange={(_, allValues) => {
-            setFormSchema({ ...formSchema, ...allValues });
+            setFormSchema({ ...schema, ...allValues });
           }}
         >
           {flags.isRoot && !disableDefinitions && (
             <Definitions
-              value={formSchema.definitions}
+              value={schema.definitions}
               onChange={(definitions) =>
-                setFormSchema({ ...formSchema, definitions })
+                setFormSchema({ ...schema, definitions })
               }
             />
           )}
           {!flags.isObject &&
-            SchemaTypes.indexOf(formSchema?.type as any) !== -1 && (
+            SchemaTypes.indexOf(schema?.type as any) !== -1 && (
               <SectionTitle title="基本设置" />
             )}
           {(flags.isString ||
@@ -101,11 +109,11 @@ export default function AdvancedModal({
           <SectionTitle title="Json Schema" />
           <TextEditor
             height={300}
-            value={JSON.stringify(formSchema, null, 2)}
+            value={JSON.stringify(schema, null, 2)}
             onChange={(value) => {
               try {
                 const editorSchema = JSON.parse(value as string);
-                setFormSchema(editorSchema);
+                setSchema(editorSchema);
                 form.setFieldsValue(editorSchema);
               } catch (e) {}
             }}
