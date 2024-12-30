@@ -192,7 +192,7 @@ export default function Definitions({ value, onChange }: DefinitionsProps) {
           value={JSON.stringify(definitionSchema, null, 2)}
           onChange={(value) => {
             try {
-              setDefinitionSchema(JSON.parse(value));
+              setDefinitionSchema(JSON.parse(value as string));
             } catch (e) {}
           }}
         />

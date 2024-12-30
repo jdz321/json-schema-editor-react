@@ -19,7 +19,7 @@ export interface SchemaMutationMethods {
 
 export interface TextEditorProps extends Pick<CSSProperties, 'width' | 'height'> {
   value: string;
-  onChange(val: string): void;
+  onChange(val: string | undefined): void;
 }
 
 export interface ExternalDefinition {
