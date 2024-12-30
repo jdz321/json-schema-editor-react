@@ -17,10 +17,9 @@ export interface SchemaMutationMethods {
   updateRequiredProperty: (curPath: string[], name: string, val: any) => void;
 }
 
-export interface TextEditorProps {
+export interface TextEditorProps extends Pick<CSSProperties, 'width' | 'height'> {
   value: string;
   onChange(val: string): void;
-  style?: CSSProperties;
 }
 
 export interface ExternalDefinition {

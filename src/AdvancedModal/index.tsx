@@ -100,11 +100,11 @@ export default function AdvancedModal({
           )}
           <SectionTitle title="Json Schema" />
           <TextEditor
-            style={{ height: 300 }}
+            height={300}
             value={JSON.stringify(formSchema, null, 2)}
             onChange={(value) => {
               try {
-                const editorSchema = JSON.parse(value);
+                const editorSchema = JSON.parse(value as string);
                 setFormSchema(editorSchema);
                 form.setFieldsValue(editorSchema);
               } catch (e) {}

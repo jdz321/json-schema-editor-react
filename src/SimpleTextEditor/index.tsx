@@ -17,11 +17,14 @@ interface SimpleTextEditorProps extends SimpleTextEditorBaseProps, TextEditorPro
 const SimpleTextEditor: FC<SimpleTextEditorProps> = ({
   onChange,
   value,
+  width,
+  height,
   style = {},
   ...restProps
 }) => {
   const textareaStyle: CSSProperties = {
-    width: '100%',
+    width: width || '100%',
+    height,
     resize: 'vertical',
     border: '1px solid #d9d9d9',
     borderRadius: 6,
