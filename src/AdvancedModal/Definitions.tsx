@@ -188,7 +188,7 @@ export default function Definitions({ value, onChange }: DefinitionsProps) {
           disableDefinitions
         />
         <TextEditor
-          style={{ height: 300 }}
+          height={300}
           value={JSON.stringify(definitionSchema, null, 2)}
           onChange={(value) => {
             try {
